@@ -1,158 +1,179 @@
 import 'package:flutter/material.dart';
-import 'text_controller.dart';
-import 'package:get/get.dart';
+import 'database/sql_helper.dart';
 
-
-class HomePage extends StatelessWidget {
-  HomePage({super.key, required this.title});
-  final TextController _controller = Get.put(TextController());
+class HomePage extends StatefulWidget {
   final String title;
+  const HomePage({super.key, required this.title});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  List<Map<String,dynamic>> _journals = [];
+  // bool _isLoading = true;
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshJournals();
+  }
+
+  void _refreshJournals() async {
+    final data = await SQLHelper.getTasks();
+    setState(() {
+      _journals = data;
+      // _isLoading = false;
+    });
+  }
+  void showForm(int? id) async{
+    if (id != null) {
+      final data = _journals.firstWhere((element) => element['id'] == id);
+      _titleController.text = data['columnTitle'];
+      _descriptionController.text = data['columnDescription'];
+    }
+    if (!context.mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        return Container(
+          padding: EdgeInsets.only(
+            top: 16,
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom+120,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: '标题',
+                ),
+              ),
+              TextField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: '内容',
+                ),
+              ),
+              const SizedBox(height: 16,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('取消'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (id != null) {
+                        await SQLHelper.updateTask(
+                          id,
+                          _titleController.text,
+                          _descriptionController.text,
+                        );
+                      } else {
+                        await SQLHelper.createTask(
+                          _titleController.text,
+                          _descriptionController.text,
+                        );
+                      }
+                      _titleController.clear();
+                      _descriptionController.clear();
+                      _refreshJournals();
+                      print('number of journals: ${_journals.length}');
+                      if (!context.mounted) return;
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(id != null ? '更新' : '添加'),
+                  ),
+
+                ],
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Center(
-            child: Obx(() {
-              return ListView(
-                itemExtent: 70,
-                children: _controller.taskList.map((task) {
-                  return InkWell(
-                    onTap: () {
-                      _controller.taskFinished(task);
-                    },
-                    child: Card(
-                      child: ListTile(
-                        leading: Text(task.index,style: const TextStyle(fontSize: 20),),
-                        title: Text(task.content,style: const TextStyle(fontSize: 15),),
-                        titleTextStyle: TextStyle(
-                          decoration: task.isDone.value ? TextDecoration.lineThrough : null,
-                          decorationThickness: 5,
-                          color: Colors.black,
-                        ),
-                        /*
-                  删除条目的按钮
-                   */
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('删除条目'),
-                                    content: const Text('确定要删除这个条目吗？'),
-                                    actions: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.end,
-                                        children: [
-                                          TextButton(
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                              child: const Text('取消')),
-                                          TextButton(
-                                              onPressed: () {
-                                                _controller.deleteItem(task);
-                                                Navigator.of(context).pop();
-                                              },
-                                              child: const Text('确定')),
-                                        ],
-                                      ),
-                                    ],
-                                  );
-                                }
-                            );
-                          },
-                        ),
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: ListView.builder(
+          itemExtent: 80,
+          itemCount: _journals.length,
+          itemBuilder: (context,index) {
+            return Card(
+              child: ListTile(
+                title: Text(_journals[index]['columnTitle']),
+                subtitle: Text(_journals[index]['columnDescription']),
+                trailing: SizedBox(
+                  width: 100,
+                  child: Row(
+                    children:[
+                      IconButton(
+                        onPressed: () {
+                          showForm(_journals[index]['id']);
+                        },
+                        icon: const Icon(Icons.edit),
                       ),
-                    ),
-                  );
-                }).toList(),
+                      IconButton(
+                        onPressed: () async {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('删除'),
+                                content: const Text('确定要删除吗？'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('取消'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      Navigator.of(context).pop();
+                                      await SQLHelper.deleteTask(_journals[index]['id']);
+                                      _refreshJournals();
+                                    },
+                                    child: const Text('确定'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        icon: const Icon(Icons.delete),
+                      ),
+                    ],
+                  ),
+                  ),
+                ),
               );
-            }),
-          ),
-          Positioned(
-            bottom: 20,
-            right: 80,
-            child: IconButton(
-              icon: const Icon(Icons.delete_forever),
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('删除所有条目'),
-                        content: const Text('确定要删除所有条目吗？'),
-                        actions: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('取消')),
-                              TextButton(
-                                  onPressed: () {
-                                    _controller.deleteAllItem();
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('确定')),
-                            ],
-                          ),
-                        ],
-                      );
-                    }
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text('添加条目'),
-                  actions: [
-                    TextField(
-                      controller: _controller.contentController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: '内容',
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('取消')),
-                        TextButton(
-                            onPressed: () {
-                              if (_controller.contentController.text.isEmpty) {
-                              } else {
-                                _controller.addItem(_controller.contentController.text);
-                                _controller.contentController.clear();
-                              }
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('确定')),
-                      ],
-                    ),
-                  ],
-                );
-              });
-        },
-        tooltip: '添加条目',
-        child: const Icon(Icons.add),
-      ),
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            showForm(null);
+          },
+          tooltip: '添加',
+          child: const Icon(Icons.add),
+        )
     );
   }
 }
