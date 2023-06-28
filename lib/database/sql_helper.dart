@@ -7,7 +7,7 @@ class SQLHelper {
     await db.execute('''
       CREATE TABLE $tableName (
         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        columnTitle TEXT NOT NULL,
+        index INTEGER NOT NULL DEFAULT 0,
         columnDescription TEXT,
         columnStatus INTEGER NOT NULL DEFAULT 0,
         createTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -17,7 +17,7 @@ class SQLHelper {
 
   static Future<Database> db() {
     return openDatabase(
-      'todo.db',
+      'todo.sql',
       version: 1,
       onCreate: (Database db, int version) async {
         await createTable(db, 'tasks');
@@ -30,6 +30,8 @@ class SQLHelper {
     final data = {
       'columnTitle': title,
       'columnDescription': description,
+      'columnStatus': 0, // 0: 未完成, 1: 已完成
+      'createTime': DateTime.now().toString(),
     };
     final int id = await db.insert(
         'tasks', data, conflictAlgorithm: ConflictAlgorithm.replace);
@@ -56,7 +58,16 @@ class SQLHelper {
     final data = {
       'columnTitle': title,
       'columnDescription': description,
-      'createTime': DateTime.now().toString(),
+    };
+    final int result = await db.update(
+        'tasks', data, where: 'id = ?', whereArgs: [id]);
+    return result;
+  }
+
+  static Future<int> changeStatus(int id, int status) async {
+    final Database db = await SQLHelper.db();
+    final data = {
+      'columnStatus': status,
     };
     final int result = await db.update(
         'tasks', data, where: 'id = ?', whereArgs: [id]);
@@ -67,8 +78,14 @@ class SQLHelper {
     final Database db = await SQLHelper.db();
     try {
       await db.delete('tasks', where: 'id = ?', whereArgs: [id]);
+      await db.rawUpdate('''
+        UPDATE tasks SET id = id - 1 WHERE id > $id
+      ''');
     } catch (error){
       debugPrint('删除失败:$error');
     }
   }
+  // static onReorder(int oldIndex, int newIndex)async{
+  //   final Database db = await SQLHelper.db();
+  // }
 }
