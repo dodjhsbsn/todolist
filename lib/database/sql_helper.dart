@@ -23,7 +23,7 @@ class SQLHelper {
   static Future<Database> db() {
     return openDatabase(
       'todo.sql',
-      version: 1,
+      version: 2,
       onCreate: (Database db, int version) async {
         await createTable(db, 'tasks');
       },
@@ -66,9 +66,9 @@ class SQLHelper {
   }
 
   // 获取单个任务并返回id
-  static Future<List<Map<String, dynamic>>> getTask(int id) async {
+  static Future<Map<String, dynamic>> getTask(int id) async {
     final Database db = await SQLHelper.db();
-    final List<Map<String, dynamic>> task = await db.query('tasks', where: 'id = ?', whereArgs: [id]);
+    final Map<String, dynamic> task = (await db.query('tasks', where: 'id = ?', whereArgs: [id])) as Map<String, dynamic>;
     return task;
   }
 

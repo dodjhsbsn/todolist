@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'database/sql_helper.dart';
 import 'package:reorderables/reorderables.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -36,103 +37,126 @@ class _HomePageState extends State<HomePage> {
 
   // 显示任务卡编辑框
   void showEditForm(int? id) async {
-
     if (id != null) {
       final data = _journals.firstWhere((element) => element['id'] == id);
       _titleController.text = data['columnTitle'];
       _descriptionController.text = data['columnDescription'];
     }
-    if (!context.mounted) return;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (_) {
         return Container(
-          padding: EdgeInsets.only(
-            top: 16,
-            left: 16,
-            right: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 120,
-          ),
-          child: FocusScope(
-            node: node,
-            child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-                TextField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: '标题',
-                    prefixIcon: Icon(Icons.title),
-                  ),
-                  maxLines: 1,
-                  maxLength: 20,
-                  // 输入框焦点控制
-                  onEditingComplete: () {
-                    node.nextFocus();
-                  },
-                  onTapOutside: (PointerDownEvent event){
-                    FocusManager.instance.primaryFocus?.unfocus();
-                  },
-                ),
-              TextField(
-                controller: _descriptionController,
-                maxLines: 4,
-                maxLength: 200,
-                decoration: const InputDecoration(
-                  labelText: '内容',
-                  prefixIcon: Icon(Icons.description),
-                ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Row(
+            padding: EdgeInsets.only(
+              top: 16,
+              left: 16,
+              right: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 50,
+            ),
+            child: FocusScope(
+              node: node,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Get.back();
+                  TextField(
+                    controller: _titleController,
+                    decoration: const InputDecoration(
+                      labelText: '标题',
+                      prefixIcon: Icon(Icons.title),
+                    ),
+                    maxLines: 1,
+                    maxLength: 20,
+                    // 输入框焦点控制
+                    onEditingComplete: () {
+                      node.nextFocus();
                     },
-                    child: const Text('取消'),
+                    onTapOutside: (PointerDownEvent event) {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    },
+                  ),
+                  TextField(
+                    controller: _descriptionController,
+                    maxLines: 4,
+                    maxLength: 150,
+                    decoration: const InputDecoration(
+                      labelText: '内容',
+                      prefixIcon: Icon(
+                        Icons.description,
+                      ),
+                    ),
                   ),
                   const SizedBox(
-                    width: 16,
+                    height: 16,
                   ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (id != null) {
-                        await SQLHelper.updateTask(
-                          id,
-                          _titleController.text,
-                          _descriptionController.text,
-                        );
-                      } else if (_titleController.text.isNotEmpty) {
-                        await SQLHelper.createTask(
-                          _titleController.text,
-                          _descriptionController.text,
-                        );
-                      }
-                      _titleController.clear();
-                      _descriptionController.clear();
-                      _refreshJournals();
-                      Get.back();
-                    },
-                    child: Text(id != null ? '更新' : '添加'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Get.back();
+                        },
+                        child: const Text('取消'),
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (id != null) {
+                            await SQLHelper.updateTask(
+                              id,
+                              _titleController.text,
+                              _descriptionController.text,
+                            );
+                          } else if (_titleController.text.isNotEmpty) {
+                            await SQLHelper.createTask(
+                              _titleController.text,
+                              _descriptionController.text,
+                            );
+                          }
+                          _titleController.clear();
+                          _descriptionController.clear();
+                          _refreshJournals();
+                          Get.back();
+                        },
+                        child: Text(id != null ? '更新' : '添加'),
+                      ),
+                    ],
                   ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  // 显示格式化任务创建时间
+                  if (id != null)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          '创建时间：${DateFormat('yyyy-MM-dd').format(DateTime.parse(_journals.firstWhere((element) => element['id'] == id)['createTime']))}',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
-              )
-            ],
-          ),)
-        );
+              ),
+            ));
       },
     );
   }
 
   ReorderableColumn _buildReorderableColumn() {
     return ReorderableColumn(
+      // footer: TextButton(
+      //   onPressed: () {
+      //     SQLHelper.deleteAll();
+      //   },
+      //   child: const Text('delete database'),
+      // ),
       onReorder: _onReorder,
       children: _journals.map<Widget>((task) {
         return ReorderableWidget(
@@ -153,24 +177,31 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   Widget _buildTask(Map<String, dynamic> task) {
     final bool isCompleted = task['columnStatus'] == 1;
 
     return Card(
       child: ListTile(
         key: ValueKey(task['id']),
+        iconColor: isCompleted ? Colors.grey : null,
+        minVerticalPadding: 16,
         title: Text(
           task['columnTitle'],
+          softWrap: true,
           style: TextStyle(
             decoration: isCompleted ? TextDecoration.lineThrough : null,
             color: isCompleted ? Colors.grey : null,
+            fontSize: 20,
           ),
         ),
         subtitle: Text(
           task['columnDescription'],
+          // softWrap: true,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: isCompleted ? Colors.grey : null,
+            fontSize: 14,
           ),
         ),
         trailing: SizedBox(
@@ -195,13 +226,13 @@ class _HomePageState extends State<HomePage> {
                         actions: [
                           TextButton(
                             onPressed: () {
-                              Navigator.of(context).pop(false);
+                              Get.back(result: false);
                             },
                             child: const Text('取消'),
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.of(context).pop(true);
+                              Get.back(result: true);
                             },
                             child: const Text('确定'),
                           ),
@@ -215,7 +246,7 @@ class _HomePageState extends State<HomePage> {
                     _refreshJournals();
                   }
                 },
-                icon: Icon(Icons.delete),
+                icon: const Icon(Icons.delete),
               ),
             ],
           ),
@@ -224,10 +255,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   void _onReorder(int oldIndex, int newIndex) async {
     final oldTask = _journals[oldIndex];
     final newTask = _journals[newIndex];
+    // 更新_journals数据，移除旧位置任务，插入新位置任务
+    setState(() {
+      _journals.removeAt(oldIndex);
+      _journals.insert(newIndex, oldTask);
+    });
 
     await SQLHelper.updateTaskOrder(
       oldTask['id'],
@@ -236,16 +271,8 @@ class _HomePageState extends State<HomePage> {
       oldTask['columnDescription'],
       oldTask['columnStatus'],
     );
-
-    // 更新_journals数据，移除旧位置任务，插入新位置任务
-    setState(() {
-      _journals.removeAt(oldIndex);
-      _journals.insert(newIndex, oldTask);
-    });
     debugPrint('reorder: ${oldTask['id']} -> ${newTask['id']}');
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -253,17 +280,7 @@ class _HomePageState extends State<HomePage> {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: Column(
-          children: [
-            _buildReorderableColumn(),
-            TextButton(
-              onPressed: () {
-                SQLHelper.deleteAll();
-              },
-              child: const Text('delete database'),
-            ),
-          ],
-        ),
+        body: _buildReorderableColumn(),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             showEditForm(null);
