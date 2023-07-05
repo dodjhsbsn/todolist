@@ -151,12 +151,12 @@ class _HomePageState extends State<HomePage> {
 
   ReorderableColumn _buildReorderableColumn() {
     return ReorderableColumn(
-      // footer: TextButton(
-      //   onPressed: () {
-      //     SQLHelper.deleteAll();
-      //   },
-      //   child: const Text('delete database'),
-      // ),
+      footer: TextButton(
+        onPressed: () {
+          SQLHelper.deleteAll();
+        },
+        child: const Text('delete database'),
+      ),
       onReorder: _onReorder,
       children: _journals.map<Widget>((task) {
         return ReorderableWidget(
@@ -191,7 +191,7 @@ class _HomePageState extends State<HomePage> {
           style: TextStyle(
             decoration: isCompleted ? TextDecoration.lineThrough : null,
             color: isCompleted ? Colors.grey : null,
-            fontSize: 20,
+            fontSize: 19,
           ),
         ),
         subtitle: Text(
