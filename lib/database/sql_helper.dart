@@ -12,9 +12,11 @@ class SQLHelper {
         columnTitle TEXT,
         columnDescription TEXT,
         columnStatus INTEGER NOT NULL DEFAULT 0,
+        columnGiveUp INTEGER NOT NULL DEFAULT 0,
         createTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         lastUpdateTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        finishedTime TIMESTAMP DEFAULT 0
+        finishedTime TIMESTAMP DEFAULT 0,
+        giveUpTime TIMESTAMP DEFAULT 0
       );
     ''');
   }
@@ -26,6 +28,12 @@ class SQLHelper {
       version: 2,
       onCreate: (Database db, int version) async {
         await createTable(db, 'tasks');
+      },
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
+        if (oldVersion == 1 && newVersion == 2) {
+          await db.execute('ALTER TABLE tasks ADD COLUMN columnGiveUp INTEGER NOT NULL DEFAULT 0;');
+          await db.execute('ALTER TABLE tasks ADD COLUMN giveUpTime TIMESTAMP DEFAULT 0;');
+        }
       },
     );
   }
@@ -170,7 +178,7 @@ class SQLHelper {
 
 
   // 删除整个数据库，测试用
-  static deleteAll() async {
-    await deleteDatabase('todo.sql');
-  }
+  // static deleteAll() async {
+  //   await deleteDatabase('todo.sql');
+  // }
 }
