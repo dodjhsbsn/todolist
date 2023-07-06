@@ -1,58 +1,56 @@
+// 任务卡控制器，包括任务卡编辑框的控制器
 import 'package:flutter/material.dart';
-import 'database/sql_helper.dart';
-import 'package:reorderables/reorderables.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:reorderables/reorderables.dart';
+import '../../database/sql_helper.dart';
 
-class HomePage extends StatefulWidget {
-  final String title;
-  const HomePage({super.key, required this.title});
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  // 任务列表
-  List<Map<String, dynamic>> _journals = [];
+class TasksController extends GetxController{
   // 任务卡编辑框标题和内容控制器
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   // 任务卡编辑框焦点控制器
   FocusScopeNode node = FocusScopeNode();
+  // 任务列表
+  final journals = [].obs;
 
   @override
-  void initState() {
-    super.initState();
-    _refreshJournals();
+  void onInit() {
+    refreshJournals();
+    super.onInit();
   }
-
+  @override
+  void onClose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.onClose();
+  }
   // 刷新任务列表
-  void _refreshJournals() async {
+  void refreshJournals() async {
     final data = await SQLHelper.getTasks();
-    setState(() {
-      _journals = List<Map<String, dynamic>>.from(data);
-    });
+    journals.value = List.from(data);
   }
 
   // 显示任务卡编辑框
   void showEditForm(int? id) async {
     if (id != null) {
-      final data = _journals.firstWhere((element) => element['id'] == id);
+      final data = journals.firstWhere((element) => element['id'] == id);
       _titleController.text = data['columnTitle'];
       _descriptionController.text = data['columnDescription'];
     }
-
     showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) {
+      context: Get.context!,
+      builder: (BuildContext context) {
         return Container(
             padding: EdgeInsets.only(
               top: 16,
               left: 16,
               right: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 50,
+              bottom: MediaQuery
+                  .of(Get.context!)
+                  .viewInsets
+                  .bottom + 50,
             ),
             child: FocusScope(
               node: node,
@@ -118,7 +116,7 @@ class _HomePageState extends State<HomePage> {
                           }
                           _titleController.clear();
                           _descriptionController.clear();
-                          _refreshJournals();
+                          refreshJournals();
                           Get.back();
                         },
                         child: Text(id != null ? '更新' : '添加'),
@@ -134,7 +132,9 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text(
-                          '创建时间：${DateFormat('yyyy-MM-dd').format(DateTime.parse(_journals.firstWhere((element) => element['id'] == id)['createTime']))}',
+                          '创建时间：${DateFormat('yyyy-MM-dd').format(
+                              DateTime.parse(journals.firstWhere((element) =>
+                              element['id'] == id)['createTime']))}',
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 12,
@@ -146,19 +146,21 @@ class _HomePageState extends State<HomePage> {
               ),
             ));
       },
+      isScrollControlled: true,
     );
   }
 
-  ReorderableColumn _buildReorderableColumn() {
+  // 建立可拖动的任务列表
+  ReorderableColumn buildReorderableColumn() {
     return ReorderableColumn(
-      footer: TextButton(
-        onPressed: () {
-          SQLHelper.deleteAll();
-        },
-        child: const Text('delete database'),
-      ),
+      // footer: TextButton(
+      //   onPressed: () {
+      //     SQLHelper.deleteAll();
+      //   },
+      //   child: const Text('delete database'),
+      // ),
       onReorder: _onReorder,
-      children: _journals.map<Widget>((task) {
+      children: journals.map<Widget>((task) {
         return ReorderableWidget(
           key: ValueKey(task['id']),
           reorderable: true,
@@ -168,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                 task['id'],
                 task['columnStatus'] == 1 ? 0 : 1,
               );
-              _refreshJournals();
+              refreshJournals();
             },
             child: _buildTask(task),
           ),
@@ -177,6 +179,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 建立任务列表
   Widget _buildTask(Map<String, dynamic> task) {
     final bool isCompleted = task['columnStatus'] == 1;
 
@@ -212,15 +215,13 @@ class _HomePageState extends State<HomePage> {
                 icon: const Icon(Icons.edit),
                 onPressed: () {
                   showEditForm(task['id']);
-                  _refreshJournals();
+                  refreshJournals();
                 },
               ),
               IconButton(
                 onPressed: () async {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
+                  final confirmed = await Get.dialog<bool>(
+                      AlertDialog(
                         title: const Text('删除'),
                         content: const Text('确定要删除吗？'),
                         actions: [
@@ -237,13 +238,12 @@ class _HomePageState extends State<HomePage> {
                             child: const Text('确定'),
                           ),
                         ],
-                      );
-                    },
+                      )
                   );
 
                   if (confirmed == true) {
                     await SQLHelper.deleteTask(task['id']);
-                    _refreshJournals();
+                    refreshJournals();
                   }
                 },
                 icon: const Icon(Icons.delete),
@@ -256,13 +256,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onReorder(int oldIndex, int newIndex) async {
-    final oldTask = _journals[oldIndex];
-    final newTask = _journals[newIndex];
-    // 更新_journals数据，移除旧位置任务，插入新位置任务
-    setState(() {
-      _journals.removeAt(oldIndex);
-      _journals.insert(newIndex, oldTask);
-    });
+    final oldTask = journals[oldIndex];
+    final newTask = journals[newIndex];
+    // 更新journals数据，移除旧位置任务，插入新位置任务
+    journals.removeAt(oldIndex);
+    journals.insert(newIndex, oldTask);
 
     await SQLHelper.updateTaskOrder(
       oldTask['id'],
@@ -274,19 +272,4 @@ class _HomePageState extends State<HomePage> {
     debugPrint('reorder: ${oldTask['id']} -> ${newTask['id']}');
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: _buildReorderableColumn(),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            showEditForm(null);
-          },
-          tooltip: '添加',
-          child: const Icon(Icons.add),
-        ));
-  }
 }
