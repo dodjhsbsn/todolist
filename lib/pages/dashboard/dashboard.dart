@@ -28,7 +28,7 @@ class DashboardPage extends StatelessWidget {
   // bottomNavigationBar 页面
   final List<Widget> bottomBarPages = [
     TasksPage(title: '行动清单'),
-    const DataVisualizationPage(title: '数据可视化'),
+    const DataVisualizationPage(title: '数据'),
   ];
   @override
   Widget build(BuildContext context) {
