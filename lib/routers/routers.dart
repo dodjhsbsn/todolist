@@ -4,6 +4,7 @@ import '/pages/data_visualization/data_visualization_page.dart';
 import '../pages/dashboard/dashboard.dart';
 import '/pages/tasks/tasks_page.dart';
 
+
 class Routers {
   static final List<GetPage> pages = [
     GetPage(

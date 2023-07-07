@@ -1,3 +1,4 @@
+// 数据库管理
 import 'package:flutter/cupertino.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -14,8 +15,10 @@ class SQLHelper {
         columnStatus INTEGER NOT NULL DEFAULT 0,
         columnGiveUp INTEGER NOT NULL DEFAULT 0,
         createTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        createWeek INTEGER NOT NULL DEFAULT -1,
         lastUpdateTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         finishedTime TIMESTAMP DEFAULT 0,
+        finishedWeek INTEGER NOT NULL DEFAULT -1,
         giveUpTime TIMESTAMP DEFAULT 0
       );
     ''');
@@ -41,7 +44,7 @@ class SQLHelper {
   // 创建任务并返回id
   static Future<int> createTask(String? title, String? description) async {
     final Database db = await SQLHelper.db();
-
+    DateTime nowTime = DateTime.now();
     // 获取最大的orderIndex
     const maxOrderIndexQuery = 'SELECT MAX(orderIndex) FROM tasks';
     final maxOrderIndexResult = await db.rawQuery(maxOrderIndexQuery);
@@ -53,8 +56,9 @@ class SQLHelper {
       'columnTitle': title,
       'columnDescription': description,
       'columnStatus': 0, // 0: 未完成, 1: 已完成
-      'createTime': DateTime.now().toString(),
-      'lastUpdateTime': DateTime.now().toString(),
+      'createTime': nowTime.toString(),
+      'createWeek': nowTime.weekday,
+      'lastUpdateTime': nowTime.toString(),
     };
 
     final int id = await db.insert(
@@ -95,9 +99,11 @@ class SQLHelper {
   // 更新任务完成状态
   static Future<int> changeStatus(int id, int status) async {
     final Database db = await SQLHelper.db();
+    DateTime nowTime = DateTime.now();
     final data = {
       'columnStatus': status,
-      'finishedTime': status==1? DateTime.now().toString(): 0,
+      'finishedTime': status==1? nowTime.toString(): 0,
+      'finishedWeek': status==1? nowTime.weekday: -1,
     };
     final int result = await db.update('tasks', data, where: 'id = ?', whereArgs: [id]);
     return result;
