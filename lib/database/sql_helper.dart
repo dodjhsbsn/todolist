@@ -17,9 +17,9 @@ class SQLHelper {
         createTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         createWeek INTEGER NOT NULL DEFAULT -1,
         lastUpdateTime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        finishedTime TIMESTAMP DEFAULT 0,
+        finishedTime TIMESTAMP DEFAULT null,
         finishedWeek INTEGER NOT NULL DEFAULT -1,
-        giveUpTime TIMESTAMP DEFAULT 0
+        giveUpTime TIMESTAMP DEFAULT null
       );
     ''');
   }
@@ -28,7 +28,7 @@ class SQLHelper {
   static Future<Database> db() {
     return openDatabase(
       'todo.sql',
-      version: 2,
+      version: 4,
       onCreate: (Database db, int version) async {
         await createTable(db, 'tasks');
       },
@@ -36,6 +36,10 @@ class SQLHelper {
         if (oldVersion == 1 && newVersion == 2) {
           await db.execute('ALTER TABLE tasks ADD COLUMN columnGiveUp INTEGER NOT NULL DEFAULT 0;');
           await db.execute('ALTER TABLE tasks ADD COLUMN giveUpTime TIMESTAMP DEFAULT 0;');
+        }
+        if (oldVersion == 2 && newVersion == 3) {
+          await db.execute('ALTER TABLE tasks ADD COLUMN createWeek INTEGER NOT NULL DEFAULT -1;');
+          await db.execute('ALTER TABLE tasks ADD COLUMN finishedWeek INTEGER NOT NULL DEFAULT -1;');
         }
       },
     );
@@ -102,7 +106,7 @@ class SQLHelper {
     DateTime nowTime = DateTime.now();
     final data = {
       'columnStatus': status,
-      'finishedTime': status==1? nowTime.toString(): 0,
+      'finishedTime': status==1? nowTime.toString(): null,
       'finishedWeek': status==1? nowTime.weekday: -1,
     };
     final int result = await db.update('tasks', data, where: 'id = ?', whereArgs: [id]);
@@ -148,6 +152,7 @@ class SQLHelper {
       whereArgs: [newId],
     );
 
+    // 获取sqlite数据库中的原位置任务和新位置任务的orderIndex，避免数据库数据和journals数据不一致
     final int oldOrderIndexDB = oldTask.isNotEmpty ? oldTask[0]['orderIndex'] : 0;
     final int newOrderIndexDB = newTask.isNotEmpty ? newTask[0]['orderIndex'] : 0;
 
@@ -182,9 +187,4 @@ class SQLHelper {
     });
   }
 
-
-  // 删除整个数据库，测试用
-  // static deleteAll() async {
-  //   await deleteDatabase('todo.sql');
-  // }
 }
