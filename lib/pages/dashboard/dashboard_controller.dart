@@ -6,5 +6,5 @@ import '../data_visualization/data_visualization_page.dart';
 
 
 class DashboardController extends GetxController{
-
+  // 黑夜模式控制
 }

@@ -1,3 +1,4 @@
+// 主程序入口
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'routers/routers.dart';
@@ -10,17 +11,18 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-  // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.yellow),
+        colorSchemeSeed: Colors.yellow,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         useMaterial3: true,
       ),
+      themeMode: ThemeMode.system,
       getPages: Routers.pages,
       initialRoute: '/',
     );

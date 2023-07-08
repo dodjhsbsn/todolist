@@ -1,4 +1,4 @@
-// 主控制程序
+// 控制面板
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
@@ -43,7 +43,7 @@ class DashboardPage extends StatelessWidget {
                     currentIndex.value = index;
                   },
                   items: bottomBarItems,
-                )
+                ),
             ),
             onWillPop: () async {
               // 点击返回键的操作

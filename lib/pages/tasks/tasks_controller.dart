@@ -153,12 +153,6 @@ class TasksController extends GetxController{
   // 建立可拖动的任务列表
   ReorderableColumn buildReorderableColumn() {
     return ReorderableColumn(
-      // footer: TextButton(
-      //   onPressed: () {
-      //     SQLHelper.deleteAll();
-      //   },
-      //   child: const Text('delete database'),
-      // ),
       onReorder: _onReorder,
       children: journals.map<Widget>((task) {
         return ReorderableWidget(
