@@ -19,9 +19,5 @@ class Routers {
       name: '/data_visualization',
       page: () => const DataVisualizationPage(title: '数据'),
     ),
-    GetPage(
-      name: '/date_picker',
-      page: () => const DatePicker(),
-    ),
   ];
 }
