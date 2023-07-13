@@ -12,8 +12,17 @@ class Themes {
   );
 
   static final yellow = ThemeData.light().copyWith(
+    colorScheme: ColorScheme.fromSeed(seedColor: Colors.orangeAccent,),
+    visualDensity: VisualDensity.adaptivePlatformDensity,
     useMaterial3: true,
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.yellow),
+    switchTheme: ThemeData.light().switchTheme.copyWith(
+    ),
+    floatingActionButtonTheme: ThemeData.light().floatingActionButtonTheme.copyWith(
+      backgroundColor: const Color.fromARGB(255, 255, 217, 70),
+    ),
+    appBarTheme: AppBarTheme(
+      backgroundColor: ThemeData.light().scaffoldBackgroundColor,
+    ),
   );
 
   static final red = ThemeData.light().copyWith(
@@ -47,10 +56,8 @@ class Themes {
               backgroundColor: MaterialStateProperty.all(Colors.brown))));
 
   static final dark = ThemeData.dark().copyWith(
+    visualDensity: VisualDensity.adaptivePlatformDensity,
     useMaterial3: true,
-    textTheme: ThemeData.dark().textTheme.apply(
-          fontFamily: 'Open Sans',
-        ),
     switchTheme: ThemeData.dark().switchTheme.copyWith(
           trackColor: MaterialStateProperty.all(ColorScheme.fromSeed(seedColor: Colors.yellow).primary),
         ),

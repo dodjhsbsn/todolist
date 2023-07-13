@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'data_visualization_controller.dart';
 
-
 class DataVisualizationPage extends StatelessWidget {
   final String title;
   const DataVisualizationPage({Key? key, required this.title}) : super(key: key);
@@ -11,19 +10,35 @@ class DataVisualizationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dataVisualizationController = Get.put(DataVisualizationController());
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Obx(() {
+          return Text('$title-${dataVisualizationController.currentYear.value}');
+        }),
+        actions: [
+          IconButton(
+            onPressed: () async{
+              // 年月选择器
+              var result =  await Get.toNamed('/date_picker');
+              if (result != null) {
+                dataVisualizationController.currentYear.value = result['year'];
+                dataVisualizationController.currentMonth.value = result['month'];
+              }
+            },
+            icon: const Icon(Icons.calendar_today),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ListTile(
-              title: Text('任务创建统计/月',style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
-              subtitle: Text('Task Create Time'),
+            ListTile(
+              title: Obx(() {
+                return Text('${dataVisualizationController.currentMonth.value}月任务创建统计',style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),);
+              }),
+              subtitle: const Text('Task Create Time'),
             ),
             const SizedBox(height: 16),
             SingleChildScrollView(
@@ -34,14 +49,18 @@ class DataVisualizationPage extends StatelessWidget {
                   height: 240,
                   child: AspectRatio(
                     aspectRatio: 1.7,
-                    child: dataVisualizationController.buildBarChart('createTime'),
+                    child: Obx(() {
+                      return dataVisualizationController.buildBarChart('createTime');
+                    }),
                   ),
                 ),
             ),
             const SizedBox(height: 16),
-            const ListTile(
-              title: Text('任务完成统计/月',style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
-              subtitle: Text('Task finished Time'),
+            ListTile(
+              title: Obx(() {
+                return Text('${dataVisualizationController.currentMonth.value}月任务完成统计',style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),);
+              }),
+              subtitle: const Text('Task finished Time'),
             ),
             const SizedBox(height: 8),
             SingleChildScrollView(
@@ -51,8 +70,10 @@ class DataVisualizationPage extends StatelessWidget {
                 width: 700,
                 height: 240,
                 child: AspectRatio(
-                  aspectRatio: 1.7,
-                  child: dataVisualizationController.buildBarChart('finishedTime'),
+                    aspectRatio: 1.7,
+                    child: Obx(() {
+                      return dataVisualizationController.buildBarChart('finishedTime');
+                    }),
                 ),
               ),
             ),

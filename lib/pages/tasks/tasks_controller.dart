@@ -12,6 +12,8 @@ class TasksController extends GetxController{
   final TextEditingController _descriptionController = TextEditingController();
   // 任务卡编辑框焦点控制器
   FocusScopeNode node = FocusScopeNode();
+  // 判断是否为黑夜模式
+  final RxBool isDarkModeValue = false.obs;
   // 任务列表
   final journals = [].obs;
 
@@ -158,16 +160,7 @@ class TasksController extends GetxController{
         return ReorderableWidget(
           key: ValueKey(task['id']),
           reorderable: true,
-          child: InkWell(
-            onTap: () {
-              SQLHelper.changeStatus(
-                task['id'],
-                task['columnStatus'] == 1 ? 0 : 1,
-              );
-              refreshJournals();
-            },
-            child: _buildTask(task),
-          ),
+          child: _buildTask(task),
         );
       }).toList(),
     );
@@ -179,6 +172,16 @@ class TasksController extends GetxController{
 
     return Card(
       child: ListTile(
+        leading: IconButton(
+          onPressed: () {
+            SQLHelper.changeStatus(
+              task['id'],
+              task['columnStatus'] == 1 ? 0 : 1,
+            );
+            refreshJournals();
+          },
+          icon: Icon(isCompleted ? Icons.check_circle : Icons.radio_button_unchecked),
+          color: isCompleted ? Colors.grey : null,),
         key: ValueKey(task['id']),
         iconColor: isCompleted ? Colors.grey : null,
         minVerticalPadding: 16,

@@ -41,6 +41,7 @@ class SQLHelper {
           await db.execute('ALTER TABLE tasks ADD COLUMN createWeek INTEGER NOT NULL DEFAULT -1;');
           await db.execute('ALTER TABLE tasks ADD COLUMN finishedWeek INTEGER NOT NULL DEFAULT -1;');
         }
+
       },
     );
   }
