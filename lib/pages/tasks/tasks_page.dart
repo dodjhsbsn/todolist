@@ -9,8 +9,6 @@ class TasksPage extends StatelessWidget {
   final String title;
   TasksPage({super.key, required this.title});
   final TasksController _tasksController = Get.put(TasksController());
-  // 判断是否为黑夜模式
-  final RxBool isDarkModeValue = false.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +27,7 @@ class TasksPage extends StatelessWidget {
                 tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
               );
             }
-          )
+          ),
         ),
         body: _tasksController.buildReorderableColumn(),
         // 位于清单界面右下角的添加任务按钮
@@ -57,13 +55,13 @@ class TasksPage extends StatelessWidget {
                         offset: const Offset(0, 3), // changes position of shadow
                       ),
                     ],
-                    color: isDarkModeValue.value? const Color.fromARGB(55, 255, 217, 70):const Color.fromARGB(255, 255, 217, 70),
+                    color: _tasksController.isDarkModeValue.value? const Color.fromARGB(55, 255, 217, 70):const Color.fromARGB(255, 255, 217, 70),
                   ),
                   child: ListTile(
                     title:const Text('设置',style: TextStyle(fontSize: 20, ),),
                     subtitle: const Text('Settings',style: TextStyle(fontSize: 16,)),
                     visualDensity: VisualDensity.comfortable,
-                    trailing: isDarkModeValue.value ?const Icon(Icons.nightlight_round):const Icon(Icons.wb_sunny),
+                    trailing: _tasksController.isDarkModeValue.value ?const Icon(Icons.nightlight_round):const Icon(Icons.wb_sunny),
                   ),
                 ),
               ),
@@ -72,10 +70,10 @@ class TasksPage extends StatelessWidget {
                 title: const Text('黑夜模式'),
                 trailing: Obx(() {
                   return Switch(
-                    value: isDarkModeValue.value,
+                    value: _tasksController.isDarkModeValue.value,
                     onChanged: (value) {
-                      isDarkModeValue.value = !isDarkModeValue.value;
-                      Get.changeTheme(isDarkModeValue.value ? Themes.dark : Themes.yellow);
+                      _tasksController.isDarkModeValue.value = !_tasksController.isDarkModeValue.value;
+                      Get.changeTheme(_tasksController.isDarkModeValue.value ? Themes.dark : Themes.yellow);
                     },
                   );
                 })
