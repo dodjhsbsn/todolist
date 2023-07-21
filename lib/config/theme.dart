@@ -35,15 +35,6 @@ class Themes {
           style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all(Colors.brown))));
 
-  static final black = ThemeData.light().copyWith(
-      useMaterial3: true,
-      scaffoldBackgroundColor: Colors.black,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.black,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.brown))));
 
   static final white = ThemeData.light().copyWith(
       useMaterial3: true,
@@ -66,6 +57,7 @@ class Themes {
         ),
     appBarTheme: AppBarTheme(
       backgroundColor: ThemeData.dark().scaffoldBackgroundColor,
+      systemOverlayStyle:  ThemeData.dark().appBarTheme.systemOverlayStyle
     ),
   );
 

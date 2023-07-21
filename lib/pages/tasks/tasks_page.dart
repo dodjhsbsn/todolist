@@ -4,12 +4,14 @@ import 'package:get/get.dart';
 import 'tasks_controller.dart';
 import '../../config/theme.dart';
 
+
 class TasksPage extends StatelessWidget {
   // 任务页面标题
   final String title;
   TasksPage({super.key, required this.title});
   final TasksController _tasksController = Get.put(TasksController());
 
+  final dropdownValue = 0.obs;
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -28,6 +30,40 @@ class TasksPage extends StatelessWidget {
               );
             }
           ),
+          actions: [
+            DropdownButtonHideUnderline(
+              child: DropdownButton(
+                items: [
+                  DropdownMenuItem(
+                    value: 0,
+                    child: const Text('全部'),
+                    onTap: (){
+                      _tasksController.showAllTasks();
+                    },
+                  ),
+                  DropdownMenuItem(
+                    value: 1,
+                    child: const Text('未完成'),
+                    onTap: (){
+                      _tasksController.showUnfinishedTasks();
+                    },
+                  ),
+                  DropdownMenuItem(
+                    value: 2,
+                    child: const Text('已完成'),
+                    onTap: (){
+                      _tasksController.showFinishedTasks();
+                    },
+                  ),
+                ],
+                value: dropdownValue.value,
+                onChanged: (value) {
+                  dropdownValue.value = dropdownValue.value == 0? 1:0;
+                },
+              ),
+            ),
+          ],
+          surfaceTintColor: Colors.white,
         ),
         body: _tasksController.buildReorderableColumn(),
         // 位于清单界面右下角的添加任务按钮

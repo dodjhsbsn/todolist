@@ -76,7 +76,7 @@ class SQLHelper {
   }
 
   // 获取所有任务
-  static Future<List<Map<String, dynamic>>> getTasks() async {
+  static Future<List<Map<String, dynamic>>> getAllTasks() async {
     final Database db = await SQLHelper.db();
     final List<Map<String, dynamic>> tasks = await db.query('tasks', orderBy: 'orderIndex');
     return tasks;
@@ -87,6 +87,20 @@ class SQLHelper {
     final Database db = await SQLHelper.db();
     final Map<String, dynamic> task = (await db.query('tasks', where: 'id = ?', whereArgs: [id])) as Map<String, dynamic>;
     return task;
+  }
+
+  // 获取已完成任务
+  static Future<List<Map<String, dynamic>>> getFinishedTasks() async {
+    final Database db = await SQLHelper.db();
+    final List<Map<String, dynamic>> tasks = await db.query('tasks', where: 'columnStatus = ?', whereArgs: [1], orderBy: 'orderIndex');
+    return tasks;
+  }
+
+  // 获取未完成任务
+  static Future<List<Map<String, dynamic>>> getUnfinishedTasks() async {
+    final Database db = await SQLHelper.db();
+    final List<Map<String, dynamic>> tasks = await db.query('tasks', where: 'columnStatus = ?', whereArgs: [0], orderBy: 'orderIndex');
+    return tasks;
   }
 
   // 更新任务

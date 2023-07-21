@@ -14,7 +14,7 @@ class DialogPop {
       // 保持时间，针对ios和web
       timeInSecForIosWeb: 1,
       // 颜色和字体
-      backgroundColor: Colors.orange,
+      backgroundColor: const Color.fromARGB(255, 255, 217, 70),
       textColor: Colors.white,
       fontSize: 16.0,
     );

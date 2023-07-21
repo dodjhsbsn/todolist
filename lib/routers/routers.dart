@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '/pages/data_visualization/data_visualization_page.dart';
 import '../pages/dashboard/dashboard.dart';
 import '../pages/tasks/tasks_page.dart';
-import '../model/date_picker.dart';
+import '../pages/edit/edit_page.dart';
 
 class Routers {
   static final List<GetPage> pages = [
@@ -18,6 +18,10 @@ class Routers {
     GetPage(
       name: '/data_visualization',
       page: () => const DataVisualizationPage(title: '数据'),
+    ),
+    GetPage(
+      name: '/edit',
+      page: () => EditPage(),
     ),
   ];
 }
