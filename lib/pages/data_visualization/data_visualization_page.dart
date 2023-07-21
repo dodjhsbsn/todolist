@@ -35,45 +35,53 @@ class DataVisualizationPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ListTile(
-                title: Obx(() {
-                  return Text('${dataVisualizationController.currentMonth.value}月任务创建统计',style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),);
-                }),
-                subtitle: const Text('Task Create Time'),
-              ),
-              const SizedBox(height: 16),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Container(
-                  padding: const EdgeInsets.only(top: 16, bottom: 30, right: 16),
-                  width: 700,
-                  height: 240,
-                  child: AspectRatio(
-                    aspectRatio: 1.7,
+              // ListTile(
+              //   title: Obx(() {
+              //     return Text('${dataVisualizationController.currentMonth.value}月任务创建统计',style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),);
+              //   }),
+              //   subtitle: const Text('Task Create Time'),
+              // ),
+              DropdownButtonHideUnderline(
+              child: DropdownButton(
+                value: 0,
+                items: [
+                  DropdownMenuItem(
+                    value: 0,
                     child: Obx(() {
-                      return dataVisualizationController.buildBarChart('createTime');
+                      return Text('${dataVisualizationController.currentMonth.value}月任务创建统计',style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),);
                     }),
                   ),
-                ),
+                  DropdownMenuItem(
+                    value: 1,
+                    child: Obx(() {
+                      return Text('${dataVisualizationController.currentMonth.value}月任务完成统计',style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),);
+                    }),
+                  ),
+                ],
+                onChanged: (value) {
+                  switch (value) {
+                    case 0:
+                      dataVisualizationController.mode.value = 'createTime';
+                      break;
+                    case 1:
+                      dataVisualizationController.mode.value = 'finishedTime';
+                      break;
+                    default:
+                  }
+                },
+              ),
               ),
               const SizedBox(height: 16),
-              ListTile(
-                title: Obx(() {
-                  return Text('${dataVisualizationController.currentMonth.value}月任务完成统计',style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),);
-                }),
-                subtitle: const Text('Task finished Time'),
-              ),
-              const SizedBox(height: 8),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Container(
                   padding: const EdgeInsets.only(top: 16, bottom: 30, right: 16),
-                  width: 700,
-                  height: 240,
+                  width: Get.width*2,
+                  height: Get.height * 0.7,
                   child: AspectRatio(
                     aspectRatio: 1.7,
                     child: Obx(() {
-                      return dataVisualizationController.buildBarChart('finishedTime');
+                      return dataVisualizationController.buildBarChart(dataVisualizationController.mode.value);
                     }),
                   ),
                 ),
